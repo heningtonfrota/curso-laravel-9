@@ -3,11 +3,11 @@
 @section('title', 'Editar Usuário')
 
 @section('content')
-    <h1>Editar Usuário: {{ $user->name }}</h1>
+    <h1 class="text-2xl">Editar Usuário: {{ $user->name }}</h1>
 
     @include('includes.validations-form')
 
-    <form action="{{ route('users.update', $user->id) }}" method="POST">
+    <form class="flex flex-col" action="{{ route('users.update', $user->id) }}" method="POST">
         @method('PUT')
         @include('users._partials.form')
     </form>
