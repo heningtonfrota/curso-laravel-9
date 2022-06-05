@@ -8,17 +8,16 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    protected $model;
+
+    public function __construct(User $user)
+    {
+        $this->model = $user;
+    }
+
     public function index(Request $request)
     {
-        $users = User::when(
-            $request->search,
-            function ($query) use ($request)
-            {
-                $query->where('name', 'LIKE', "%{$request->search}%")
-                    ->orWhere('email', $request->search);
-            }
-        )
-        ->get();
+        $users = $this->model->getUsers(search: $request->search ?? '');
 
         return view('users.index', compact('users'));
     }
@@ -29,40 +28,31 @@ class UserController extends Controller
     }
 
     public function store(StoreUpdateUserFormRequest $request)
-    {
-        $data = $request->all();
-        $data['password'] = bcrypt($request->password);
-        
-        User::create($data);
+    {        
+        $this->model->storeUser($request);
 
         return redirect()->route('users.index');
     }
 
     public function show($id)
     {
-        if (!$user = User::find($id)) return redirect()->route('users.index');
+        if (!$user = $this->model->find($id)) return redirect()->route('users.index');
 
         return view('users.show', compact('user'));
     }
 
     public function edit($id)
     {
-        if (!$user = User::find($id)) return redirect()->route('users.index');
+        if (!$user = $this->model->find($id)) return redirect()->route('users.index');
 
         return view('users.edit', compact('user'));
     }
 
     public function update(StoreUpdateUserFormRequest $request, $id)
     {
-        if (!$user = User::find($id)) return redirect()->route('users.index');
+        if (!$user = $this->model->find($id)) return redirect()->route('users.index');
 
-        $data = $request->only('name', 'email');
-
-        if ($request->password) {
-            $data['password'] = bcrypt($request->password);
-        }
-
-        $user->update($data);
+        $this->model->updateUser($user, $request);
 
         return redirect()->route('users.index');
     }
